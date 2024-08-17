@@ -1,5 +1,6 @@
 const winston = require("winston");
 require("winston-daily-rotate-file");
+const Graylog2 = require("winston-graylog2");
 
 const levels = {
   error: 0,
@@ -25,15 +26,27 @@ const dailyRotateFileTransport = new winston.transports.DailyRotateFile({
   maxFiles: "14d",
 });
 
+const graylogTransport = new Graylog2({
+  name: "Graylog",
+  level: "debug",
+  graylog: {
+    servers: [{ host: "localhost", port: 12201 }],
+  },
+  staticMeta: { env: "production" },
+});
+
 const logger = winston.createLogger({
-  levels: "debug",
   levels,
   format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json(),
-    winston.format.colorize(),
+      winston.format.timestamp(),
+      winston.format.json(),
+      winston.format.colorize(),
   ),
-  transports: [new winston.transports.Console(), dailyRotateFileTransport],
+  transports: [
+    new winston.transports.Console(),
+    dailyRotateFileTransport,
+    graylogTransport,
+  ],
 });
 
 module.exports = logger;
